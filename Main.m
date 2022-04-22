@@ -1,6 +1,6 @@
 close all; clear; clc;
  
-root_path = 'C:\Users\Cecilia\Desktop\Paper_LFPvsManifold\Código';
+root_path = 'C:\Users\Cecilia\Documents\BeNeuroLab\Project_LFPvsMLatents';
 data_path = fullfile(root_path,'Data');
 addpath(genpath(data_path));
 % Add trial_data repo to path
@@ -8,7 +8,7 @@ addpath(genpath(fullfile(root_path,"TrialData")));
 
 % Import trial_data structure
 load(fullfile(data_path,'\filenames.mat'));
-file = 10;
+file = 10; % Example file
 trial_data = loadTDfiles(filenames{file,1},{@getTDidx,{'result','R'}}); 
 
 % Change original bin size (10 ms) to 30 ms
@@ -54,6 +54,6 @@ lfp_dims = 10;
 % WARNING: This function works with the original dataset, not the trial_data structure
 % Add ClassyDataAnalysis to working path
 addpath(genpath(fullfile(root_path,"ClassyDataAnalysis")));
-cds_path = fullfile(root_path,'CDS','Chewie_CO_CS_BL_10212016_001.mat');
+cds_path = fullfile(data_path,'Preprocessed_DataSets','Chewie_CO_CS_BL_10212016_001.mat');
 [lfp_ps,ps_freqs] = lfp_power_spectrum(cds_path,struct('array',filenames{file,2},'epoch','exec','max_freq',400,'doPlot',true));
 

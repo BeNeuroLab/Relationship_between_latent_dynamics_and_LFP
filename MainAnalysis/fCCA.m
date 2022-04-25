@@ -29,7 +29,7 @@
 % Written by Cecilia Gallego-Carracedo. Updated September 2021.
 %
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-function [cca_coef,cca_coef_surr,p] = fCCA(trial_data,params)
+function [cca_coef,cca_coef_surr,p,varargout] = fCCA(trial_data,params)
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Default parameters
 array = {};
@@ -64,16 +64,22 @@ pca_data = cell2mat({trial_data.([array '_pca'])}');
 
 % Compute CCA
 cca_coef = nan(length(spk_ch),length(max_fq)); 
+U = cell(size(cca_coef)); V = cell(size(U));
+A = cell(size(U)); B = cell(size(U));
 for band = 1:length(max_fq)
     for ch = 1:length(spk_ch)
         isFreq = trial_data(1).([array '_lfp_guide'])(:,3) == max_fq(band);
         isChan = trial_data(1).([array '_lfp_guide'])(:,1) == spk_ch(ch);
         idx = isFreq & isChan;
         indiv_lfp = lfp_data(:,idx);
-        [~,~,cca_coef(ch,band),~,~] = canoncorr(pca_data,indiv_lfp); 
+        [A{ch,band},B{ch,band},cca_coef(ch,band),U{ch,band},V{ch,band}] = canoncorr(pca_data,indiv_lfp); 
     end
 end
-
+varargout{1} = A;
+varargout{2} = B;
+varargout{3} = U;
+varargout{4} = V;
+ 
 % Surrogate data analysis
 cca_coef_surr = zeros(length(spk_ch),length(max_fq),surrogate_iter);
 

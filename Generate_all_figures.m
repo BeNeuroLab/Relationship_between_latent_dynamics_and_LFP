@@ -186,13 +186,30 @@ trial_data = loadTDfiles(filenames{file,1},{@getTDidx,{'result','R'}});
 trial_data = binTD(trial_data,3); trial_data = trim_data(trial_data,'exec');
 [~,~,~] = fCCA(trial_data,struct('array',filenames{file,2},'pca_dims',10,'surrogate_iter',1,'doPlot',true));
 % Figure 3c
-total_cca = [];
+total_cca = {};
 for file = 1:16
     trial_data = loadTDfiles(filenames{file,1},{@getTDidx,{'result','R'}}); 
     trial_data = binTD(trial_data,3); trial_data = trim_data(trial_data,'exec');
-    [cca_coeff,~,~] = fCCA(trial_data,struct('array',filenames{file,2},'pca_dims',10,'surrogate_iter',0,'doPlot',true));
-    total_cca = cat(1,total_cca,cca_coeff);
+    [cca_coeff,~,~] = fCCA(trial_data,struct('array',filenames{file,2},'pca_dims',10,'surrogate_iter',0,'doPlot',false));
+    total_cca{file} = cca_coeff;
 end
+data = cell2mat(total_cca');
+edge_label = 0:0.02:1; c = parula(9);
+for b = 1:9
+    single_dis = histcounts(data(:,b),-0.01:0.02:1.01);
+    idx = find(single_dis);
+    dis = smooth(single_dis(idx)); dis = dis./max(dis); newlabel = edge_label(idx);
+    newlabel = cat(2,fliplr(newlabel),newlabel); 
+    dis = cat(1,flipud(-dis),dis);
+    hold on; h(b) = fill(dis+(3*b),newlabel,'r');
+    set(h(b),'FaceColor',c(b,:));
+    single_data = data(:,b);
+    m = mean(single_data); [~,pos] = min(abs(newlabel-m)); x1 = dis(pos); x = -x1; 
+    hold on; line([x1+(3*b) x+(3*b)],[m m],'color','k','linewidth',1.5)
+end
+xlim([1,32]); ylim([0 1]); set(gca,'xtick',3:3:27,'xticklabel',bands_name)
+ylabel('CCA coefficient'); set(gca,'TickDir','out'); box off;
+title('All CCA M1')
 %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Figure 4a
 file = 12;
@@ -212,33 +229,111 @@ for t = 1:10
 end
 % Figure 4b
 figure
-total_r2 = [];
+total_r2 = {};
 for file = 1:16
     trial_data = loadTDfiles(filenames{file,1},{@getTDidx,{'result','R'}}); 
     trial_data = binTD(trial_data,3); trial_data = trim_data(trial_data,'exec');
-    [decoder_result] = vel_decoder(trial_data,struct('array',filenames{file,2},'folds',5,'bins_to_past',3,'pca_dims',10,'doPlot',false,'eval',{{'r2'}}));
-    total_r2 = cat(1,total_r2,reshape([decoder_result.r2],[],10));
+    [decoder_result] = vel_decoder(trial_data,struct('array',filenames{file,2},'folds',1,'bins_to_past',3,'pca_dims',10,'doPlot',false,'eval',{{'r2'}}));
+    total_r2{file} = reshape([decoder_result.r2],[],10);
 end
-total_dis = []; edge_label = 0:0.02:1; c = parula(9); c(10,:) = [0 0 0];
+data = cell2mat(total_r2');
+edge_label = 0:0.02:1; c = parula(9); c(10,:) = [0 0 0];
 for b = 1:10
-    single_dis = histcounts(total_r2(:,b),-0.01:0.02:1.01);
+    single_dis = histcounts(data(:,b),-0.01:0.02:1.01);
     idx = find(single_dis);
     dis = smooth(single_dis(idx)); dis = dis./max(dis); newlabel = edge_label(idx);
     newlabel = cat(2,fliplr(newlabel),newlabel); 
     dis = cat(1,flipud(-dis),dis);
     hold on; h(b) = fill(dis+(3*b),newlabel,'r');
     set(h(b),'FaceColor',c(b,:));
-    single_data = total_r2(:,b);
-    m = mean(single_data); [~,pos] = min(abs(newlabel-m)); x1 = dis(pos); x2 = -x1; 
+    single_data = data(:,b);
+    m = mean(single_data); [~,pos] = min(abs(newlabel-m)); x1 = dis(pos); x = -x1; 
     if b == 10
-        hold on; line([x1+(3*b) x2+(3*b)],[m m],'color',[1 1 1],'linewidth',1.5)
+        hold on; line([x1+(3*b) x+(3*b)],[m m],'color',[1 1 1],'linewidth',1.5)
     else
-        hold on; line([x1+(3*b) x2+(3*b)],[m m],'color','k','linewidth',1.5)
+        hold on; line([x1+(3*b) x+(3*b)],[m m],'color','k','linewidth',1.5)
     end
 end
 xlim([1,32]); ylim([0 1]); set(gca,'xtick',3:3:30,'xticklabel',bands_name)
 ylabel('Decoder Accuracy'); set(gca,'TickDir','out'); box off;
 title('All decoders M1')
 % Figure 4c
-
-
+figure
+c = parula(9); total_x = []; total_y = [];
+for j = 1:16
+    x = mean(total_cca{j});
+    y = mean(total_r2{j}); y(:,10) = [];
+    for b = 1:9
+        if ismember(j,1:6)
+            hold on; d(b) = scatter(x(b),y(b),'MarkerEdgeColor',c(b,:),'MarkerFaceColor',c(b,:));
+        elseif ismember(j,7:12)
+            hold on; a(b) = scatter(x(b),y(b),'square','MarkerEdgeColor',c(b,:),'LineWidth',2);
+        elseif ismember(j,13:16)
+            hold on; e(b) = scatter(x(b),y(b),'+','MarkerEdgeColor',c(b,:),'LineWidth',2);
+        end
+    end
+    total_y = cat(1,total_y,y');
+    total_x = cat(1,total_x,x');
+end
+mdl = fitlm(total_x,total_y);
+hold on; h = plot(mdl);
+delete(h(1)); delete(h(3)); delete(h(4)); set(h(2),'color','k')
+legend([d(1) a(1) e(1)],{'Monkey M','Monkey CL','Monkey CR'});
+ylabel('Decoder performance'); xlabel('CCA correlation coefficient');
+set(gca,'TickDir','out'); box off; title('All M1');
+%% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Figure 5a
+figure
+subplot(1,3,1)
+total_cca_exec = {}; total_cca_prep = {}; total_cca_rest = {};
+for file = 1:16
+    trial_data = loadTDfiles(filenames{file,1},{@getTDidx,{'result','R'}}); 
+    trial_data = binTD(trial_data,3); 
+    trial_data_temp = trim_data(trial_data,'exec');
+    [cca_coeff,~,~] = fCCA(trial_data_temp,struct('array',filenames{file,2},'pca_dims',10,'surrogate_iter',0,'doPlot',false));
+    total_cca_exec{file} = mean(cca_coeff);
+    trial_data_temp = trim_data(trial_data,'prep');
+    [cca_coeff,~,~] = fCCA(trial_data_temp,struct('array',filenames{file,2},'pca_dims',10,'surrogate_iter',0,'doPlot',false));
+    total_cca_prep{file} = mean(cca_coeff);
+    trial_data_temp = trim_data(trial_data,'rest');
+    [cca_coeff,~,~] = fCCA(trial_data_temp,struct('array',filenames{file,2},'pca_dims',10,'surrogate_iter',0,'doPlot',false));
+    total_cca_rest{file} = mean(cca_coeff);
+end
+data_exec = cell2mat(total_cca_exec'); hold on; stdshade(data_exec,0.5,[1,0,0])
+data_prep = cell2mat(total_cca_prep'); hold on; stdshade(data_prep,0.5,[0,0,1])
+data_rest = cell2mat(total_cca_rest'); hold on; stdshade(data_rest,0.5,[0,0,0])
+set(gca,'xticklabel',bands_name); ylabel('CCA coefficient'); ylim([0,0.8])
+set(gca,'TickDir','out'); box off; 
+subplot(1,3,2)
+for j = 1:16
+    x = data_prep(j,:);
+    y = data_exec(j,:);
+    for b = 1:9
+        if ismember(j,1:6)
+            hold on; d(b) = scatter(x(b),y(b),'MarkerEdgeColor',[0,0,0],'MarkerFaceColor',[0,0,0]);
+        elseif ismember(j,7:12)
+            hold on; a(b) = scatter(x(b),y(b),'square','MarkerEdgeColor',[0,0,0],'LineWidth',2);
+        elseif ismember(j,13:16)
+            hold on; e(b) = scatter(x(b),y(b),'+','MarkerEdgeColor',[0,0,0],'LineWidth',2);
+        end
+    end
+end
+legend([d(1) a(1) e(1)],{'Monkey M','Monkey CL','Monkey CR'});
+xlabel('Preparation'); ylabel('Execution'); xlim([0,0.8]); ylim([0,0.8])
+set(gca,'TickDir','out'); box off; 
+subplot(1,3,3)
+for j = 1:16
+    x = data_rest(j,:);
+    y = data_exec(j,:);
+    for b = 1:9
+        if ismember(j,1:6)
+            hold on; d(b) = scatter(x(b),y(b),'MarkerEdgeColor',[0,0,0],'MarkerFaceColor',[0,0,0]);
+        elseif ismember(j,7:12)
+            hold on; a(b) = scatter(x(b),y(b),'square','MarkerEdgeColor',[0,0,0],'LineWidth',2);
+        elseif ismember(j,13:16)
+            hold on; e(b) = scatter(x(b),y(b),'+','MarkerEdgeColor',[0,0,0],'LineWidth',2);
+        end
+    end
+end
+xlabel('Rest'); ylabel('Execution'); xlim([0,0.8]); ylim([0,0.8])
+set(gca,'TickDir','out'); box off; 

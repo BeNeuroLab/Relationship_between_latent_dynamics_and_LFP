@@ -132,6 +132,13 @@ end
 
 % Final plot
 if doPlot
+    % If there are names for the frequency bands
+    if exist('bands_name.mat','file') == 2
+        load('bands_name.mat');
+    else % Else, assign ordered numbers
+        bands_name = num2cell(1:bands_number);
+    end
+
     data = reshape([cca_coef; cca_coef_surr],[],size(cca_coef,2)*2);
 
     pos1 = 1:3:size(cca_coef,2)*3;
@@ -139,7 +146,6 @@ if doPlot
     positions = repmat(sort([pos1 pos2]),size(data,1),1);
     label_positions = (pos1+pos2)./2; 
 
-    figure
     c = parula(size(cca_coef,2)*2); c(2:2:end,:) = 0;
     for n = 1:size(cca_coef,2)*2
         hold on; scatter(positions(:,n),data(:,n),20,'MarkerEdgeColor',c(n,:),'MarkerFaceColor',c(n,:),'MarkerFaceAlpha',.3,'MarkerEdgeAlpha',.3);
@@ -147,11 +153,7 @@ if doPlot
         hold on; errorbar(positions(1,n)+0.5,median(data(:,n)),std(data(:,n)),'LineStyle','none','color',c(n,:),'linewidth',2);
     end
 
-    set(gca,'xtick',label_positions) 
-    lfp_guide = trial_data(1).([array '_lfp_guide']);
-    bands_name = num2cell((lfp_guide(1:band,2)+lfp_guide(1:band,3))/2);
-    set(gca,'xticklabel',bands_name) 
-
+    set(gca,'xtick',label_positions,'xticklabel',bands_name); 
     ylabel('CCA coefficient'); xlabel('Mid-band frequency (Hz)');
     title([trial_data(1).monkey,'  ',trial_data(1).date_time])
 end

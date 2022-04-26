@@ -6,9 +6,8 @@ addpath(genpath(data_path));
 % Add trial_data repo to path
 addpath(genpath(fullfile(root_path,"TrialData")));
 
-% Import filenames and bands_name
+% Import trial_data structure
 load(fullfile(data_path,'filenames.mat'));
-load(fullfile(data_path,'bands_name.mat'));
 
 %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Figure 2
@@ -219,26 +218,41 @@ for file = 1:16
     [decoder_result] = vel_decoder(trial_data,struct('array',filenames{file,2},'folds',5,'bins_to_past',3,'pca_dims',10,'doPlot',false,'eval',{{'r2'}}));
     total_r2 = cat(1,total_r2,reshape([decoder_result.r2],[],10));
 end
-total_dis = []; edge_label = 0:0.02:1; c = parula(9); c(10,:) = [0 0 0];
+total_dis = [];
+ for b = 1:10
+    hist_data = total_r2(:,b);
+    [N,~] = histcounts(hist_data,-0.01:0.02:1.01);
+    total_dis(:,b) = N;
+ end
+figure
+N = total_dis;
 for b = 1:10
-    single_dis = histcounts(total_r2(:,b),-0.01:0.02:1.01);
-    idx = find(single_dis);
-    dis = smooth(single_dis(idx)); dis = dis./max(dis); newlabel = edge_label(idx);
+    aux = N(:,b);
+    idx = find(aux);
+    dis = smooth(aux(idx)); dis = dis./max(dis); newlabel = edge_label(idx);
+%     dis = cat(1,0,dis,0); newlabel = cat(2,edge_label(idx(1)-1),newlabel,edge_label(idx(end)+1));
+    newlabel = cat(2,fliplr(newlabel),newlabel); 
+    dis = cat(1,flipud(-dis),dis);
     newlabel = cat(2,fliplr(newlabel),newlabel); 
     dis = cat(1,flipud(-dis),dis);
     hold on; h(b) = fill(dis+(3*b),newlabel,'r');
     set(h(b),'FaceColor',c(b,:));
-    single_data = total_r2(:,b);
-    m = mean(single_data); [~,pos] = min(abs(newlabel-m)); x1 = dis(pos); x2 = -x1; 
+    single_data = data(:,b);
+    m = mean(single_data); % s = std(single_data);
+    [~,pos] = min(abs(newlabel-m)); x1 = dis(pos); x2 = -x1; 
     if b == 10
         hold on; line([x1+(3*b) x2+(3*b)],[m m],'color',[1 1 1],'linewidth',1.5)
     else
         hold on; line([x1+(3*b) x2+(3*b)],[m m],'color','k','linewidth',1.5)
     end
+%     hold on; scatter((2*b)-0.5,m,50,'MarkerEdgeColor',c(b,:),'MarkerFaceColor',c(b,:))
+%     hold on; errorbar((2*b)-0.5,m,s,'LineStyle','none','color',c(b,:),'linewidth',2);
 end
-xlim([1,32]); ylim([0 1]); set(gca,'xtick',3:3:30,'xticklabel',bands_name)
-ylabel('Decoder Accuracy'); set(gca,'TickDir','out'); box off;
-title('All decoders M1')
-% Figure 4c
+
+
+xlim([1,32]); ylim([0 1])
+set(gca,'xtick',3:3:30,'xticklabel',bands_name)
+set(gca,'TickDir','out'); ylabel('CCA correlation'); box off;
+title('Mean distribution M1')
 
 

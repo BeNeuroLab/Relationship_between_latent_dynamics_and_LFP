@@ -33,9 +33,10 @@ function [total_result] = vel_decoder(trial_data,params)
 array = {};
 bins_to_past = 5;
 folds = 20;
-eval = {'r2'};
+eval = {{'r2'}};
 doPlot = true;
 pca_dims = 8;
+fix_traintest = false;
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 trial_data = check_td_quality(trial_data);
 if ~isempty(params), assignParams(who,params); end
@@ -75,14 +76,14 @@ for iband = 1:bands_number
     % Compute cross-validated decoder
     for ifold = 1:folds
         %disp(['Fold ' num2str(n) ' out of ' num2str(folds)])
-        single_result{ifold,iband} = ComputeVelModel(single_band_td,bins_to_past,[array '_lfp'],eval);
+        single_result{ifold,iband} = ComputeVelModel(single_band_td,[array '_lfp'],struct('bins_to_past',bins_to_past,'eval',{eval},'fix_traintest',fix_traintest));
         single_result{ifold,iband}.band = iband;
     end
 end
 % Decoders based on Latent varibles
 disp('Latent variables'); 
 for ifold = 1:folds
-    single_result{ifold,iband+1} = ComputeVelModel(trial_data,bins_to_past,[array '_pca'],eval);
+    single_result{ifold,iband+1} = ComputeVelModel(trial_data,[array '_pca'],struct('bins_to_past',bins_to_past,'eval',{eval},'fix_traintest',fix_traintest));
     single_result{ifold,iband+1}.band = iband+1;
 end
 

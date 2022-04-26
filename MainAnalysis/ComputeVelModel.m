@@ -23,14 +23,26 @@
 % Written by Cecilia Gallego-Carracedo. Updated September 2021.
 %
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-function [model] = ComputeVelModel(trial_data,bins_to_past,name,eval)
+function [model] = ComputeVelModel(trial_data,name,params)
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Default parameters
+bins_to_past = 3;
+eval = {{'r2'}};
+fix_traintest = false;
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+trial_data = check_td_quality(trial_data);
+if ~isempty(params), assignParams(who,params); end
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 % Choose train and test trial indexes
-idx = randperm(length(trial_data));
+if fix_traintest
+    idx = 1:length(trial_data);
+else
+    idx = randperm(length(trial_data));
+end
 
 test_idx = idx(1:round(length(trial_data)*0.1));
 train_idx = idx(round(length(trial_data)*0.1)+1:length(trial_data));
-
 
 % Duplicate and Shift the data to add extra bins to the past or future
 if bins_to_past > 1 % Bins to past

@@ -186,6 +186,7 @@ trial_data = loadTDfiles(filenames{file,1},{@getTDidx,{'result','R'}});
 trial_data = binTD(trial_data,3); trial_data = trim_data(trial_data,'exec');
 [~,~,~] = fCCA(trial_data,struct('array',filenames{file,2},'pca_dims',10,'surrogate_iter',1,'doPlot',true));
 % Figure 3c
+figure
 total_cca = {};
 for file = 1:16
     trial_data = loadTDfiles(filenames{file,1},{@getTDidx,{'result','R'}}); 
@@ -242,6 +243,7 @@ for b = 1:10
     single_dis = histcounts(data(:,b),-0.01:0.02:1.01);
     idx = find(single_dis);
     dis = smooth(single_dis(idx)); dis = dis./max(dis); newlabel = edge_label(idx);
+    try newlabel = cat(2,edge_label(idx(1)-1),newlabel,edge_label(idx(end)+1)); dis = cat(1,0,dis,0); end
     newlabel = cat(2,fliplr(newlabel),newlabel); 
     dis = cat(1,flipud(-dis),dis);
     hold on; h(b) = fill(dis+(3*b),newlabel,'r');
@@ -337,3 +339,187 @@ for j = 1:16
 end
 xlabel('Rest'); ylabel('Execution'); xlim([0,0.8]); ylim([0,0.8])
 set(gca,'TickDir','out'); box off; 
+%% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Figure 6b
+figure
+subplot(1,2,1)
+file = 17;
+trial_data = loadTDfiles(filenames{file,1},{@getTDidx,{'result','R'}}); 
+trial_data = binTD(trial_data,3); trial_data = trim_data(trial_data,'prep');
+[~,~,~] = fCCA(trial_data,struct('array',filenames{file,2},'pca_dims',15,'surrogate_iter',1,'doPlot',true));
+subplot(1,2,2)
+file = 26;
+trial_data = loadTDfiles(filenames{file,1},{@getTDidx,{'result','R'}}); 
+trial_data = binTD(trial_data,3); trial_data = trim_data(trial_data,'prep');
+[~,~,~] = fCCA(trial_data,struct('array',filenames{file,2},'pca_dims',15,'surrogate_iter',1,'doPlot',true));
+% Figure 6c&d
+figure
+total_cca_exec = {}; total_cca_prep = {}; total_cca_rest = {};
+for file = 17:28
+    trial_data = loadTDfiles(filenames{file,1},{@getTDidx,{'result','R'}}); 
+    trial_data = binTD(trial_data,3); 
+    trial_data_temp = trim_data(trial_data,'exec');
+    [cca_coeff,~,~] = fCCA(trial_data_temp,struct('array',filenames{file,2},'pca_dims',15,'surrogate_iter',0,'doPlot',false));
+    total_cca_exec{file} = mean(cca_coeff);
+    trial_data_temp = trim_data(trial_data,'prep');
+    [cca_coeff,~,~] = fCCA(trial_data_temp,struct('array',filenames{file,2},'pca_dims',15,'surrogate_iter',0,'doPlot',false));
+    total_cca_prep{file} = mean(cca_coeff);
+    trial_data_temp = trim_data(trial_data,'rest');
+    [cca_coeff,~,~] = fCCA(trial_data_temp,struct('array',filenames{file,2},'pca_dims',15,'surrogate_iter',0,'doPlot',false));
+    total_cca_rest{file} = mean(cca_coeff);
+end
+data_exec = cell2mat(total_cca_exec'); data_prep = cell2mat(total_cca_prep'); data_rest = cell2mat(total_cca_rest'); 
+subplot(1,2,1)
+for j = 1:12
+    x = data_prep(j,:);
+    y = data_exec(j,:);
+    for b = 1:9
+        if ismember(j,1:6)
+            hold on; d(b) = scatter(x(b),y(b),'MarkerEdgeColor',[0,0,0],'MarkerFaceColor',[0,0,0]);
+        elseif ismember(j,7:12)
+            hold on; a(b) = scatter(x(b),y(b),'square','MarkerEdgeColor',[0,0,0],'LineWidth',2);
+        end
+    end
+end
+legend([d(1) a(1)],{'Monkey M','Monkey CL'});
+xlabel('Preparation'); ylabel('Execution'); xlim([0,0.8]); ylim([0,0.8])
+set(gca,'TickDir','out'); box off; 
+subplot(1,2,2)
+for j = 1:12
+    x = data_rest(j,:);
+    y = data_exec(j,:);
+    for b = 1:9
+        if ismember(j,1:6)
+            hold on; d(b) = scatter(x(b),y(b),'MarkerEdgeColor',[0,0,0],'MarkerFaceColor',[0,0,0]);
+        elseif ismember(j,7:12)
+            hold on; a(b) = scatter(x(b),y(b),'square','MarkerEdgeColor',[0,0,0],'LineWidth',2);
+        end
+    end
+end
+xlabel('Rest'); ylabel('Execution'); xlim([0,0.8]); ylim([0,0.8])
+set(gca,'TickDir','out'); box off; 
+% 6e 
+figure
+total_clasif = {};
+for file = 17:28
+    trial_data = loadTDfiles(filenames{file,1},{@getTDidx,{'result','R'}}); 
+    trial_data = binTD(trial_data,3); trial_data = trim_data(trial_data,'prep');
+    [total_clasif{file}] = target_classifier(trial_data,struct('array',filenames{file,2},'folds',5,'pca_dims',15,'doPlot',false));
+end
+data = cell2mat(total_clasif');
+edge_label = 0:0.02:1; c = parula(9); c(10,:) = [0 0 0];
+for b = 1:10
+    single_dis = histcounts(data(:,b),-0.01:0.02:1.01);
+    idx = find(single_dis);
+    dis = smooth(single_dis(idx)); dis = dis./max(dis); newlabel = edge_label(idx);
+    try newlabel = cat(2,edge_label(idx(1)-1),newlabel,edge_label(idx(end)+1)); dis = cat(1,0,dis,0); end
+    newlabel = cat(2,fliplr(newlabel),newlabel); 
+    dis = cat(1,flipud(-dis),dis);
+    hold on; h(b) = fill(dis+(3*b),newlabel,'r');
+    set(h(b),'FaceColor',c(b,:));
+    single_data = data(:,b);
+    m = mean(single_data); [~,pos] = min(abs(newlabel-m)); x1 = dis(pos); x = -x1; 
+    if b == 10
+        hold on; line([x1+(3*b) x+(3*b)],[m m],'color',[1 1 1],'linewidth',1.5)
+    else
+        hold on; line([x1+(3*b) x+(3*b)],[m m],'color','k','linewidth',1.5)
+    end
+end
+xlim([1,32]); ylim([0 1]); set(gca,'xtick',3:3:30,'xticklabel',bands_name)
+ylabel('Accuracy'); set(gca,'TickDir','out'); box off;
+title('All PMd Classifiers')
+%% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Figure 7b
+figure
+subplot(1,3,1)
+file = 32;
+trial_data = loadTDfiles(filenames{file,1},{@getTDidx,{'result','R'}}); 
+trial_data = binTD(trial_data,3); trial_data = trim_data(trial_data,'feed');
+[~,~,~] = fCCA(trial_data,struct('array',filenames{file,2},'pca_dims',8,'surrogate_iter',1,'doPlot',true));
+subplot(1,3,2)
+file = 35;
+trial_data = loadTDfiles(filenames{file,1},{@getTDidx,{'result','R'}}); 
+trial_data = binTD(trial_data,3); trial_data = trim_data(trial_data,'feed');
+[~,~,~] = fCCA(trial_data,struct('array',filenames{file,2},'pca_dims',8,'surrogate_iter',1,'doPlot',true));
+% Figure 7c
+subplot(1,3,3)
+total_cca_exec = {}; total_cca_rest = {};
+for file = 29:36
+    trial_data = loadTDfiles(filenames{file,1},{@getTDidx,{'result','R'}}); 
+    trial_data = binTD(trial_data,3); 
+    trial_data_temp = trim_data(trial_data,'feed');
+    [cca_coeff,~,~] = fCCA(trial_data_temp,struct('array',filenames{file,2},'pca_dims',15,'surrogate_iter',0,'doPlot',false));
+    total_cca_exec{file} = mean(cca_coeff);
+    trial_data_temp = trim_data(trial_data,'rest');
+    [cca_coeff,~,~] = fCCA(trial_data_temp,struct('array',filenames{file,2},'pca_dims',15,'surrogate_iter',0,'doPlot',false));
+    total_cca_rest{file} = mean(cca_coeff);
+end
+data_exec = cell2mat(total_cca_exec'); data_rest = cell2mat(total_cca_rest'); 
+for j = 1:8
+    x = data_rest(j,:);
+    y = data_exec(j,:);
+    for b = 1:9
+        if ismember(j,1:5)
+            hold on; d(b) = scatter(x(b),y(b),'MarkerEdgeColor',[0,0,0],'MarkerFaceColor',[0,0,0]);
+        elseif ismember(j,7:12)
+            hold on; a(b) = scatter(x(b),y(b),'square','MarkerEdgeColor',[0,0,0],'LineWidth',2);
+        end
+    end
+end
+xlabel('Rest'); ylabel('Execution'); xlim([0,0.7]); ylim([0,0.7])
+set(gca,'TickDir','out'); box off; 
+%% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Figure 8a
+figure
+subplot(1,3,1)
+file = 12;
+trial_data = loadTDfiles(filenames{file,1},{@getTDidx,{'result','R'}}); 
+trial_data = binTD(trial_data,3); trial_data = trim_data(trial_data,'exec');
+[~, ~] = unit_correlation(trial_data,struct('array',filenames{file,2},'signal','SUA','pca_dims',10,'doPlot',true));
+ylim([0,0.8]); set(gca,'TickDir','out'); box off; 
+subplot(1,3,2)
+file = 26;
+trial_data = loadTDfiles(filenames{file,1},{@getTDidx,{'result','R'}}); 
+trial_data = binTD(trial_data,3); trial_data = trim_data(trial_data,'prep');
+[~, ~] = unit_correlation(trial_data,struct('array',filenames{file,2},'signal','SUA','pca_dims',15,'doPlot',true));
+ylim([0,0.8]); set(gca,'TickDir','out'); box off; 
+subplot(1,3,3)
+file = 32;
+trial_data = loadTDfiles(filenames{file,1},{@getTDidx,{'result','R'}}); 
+trial_data = binTD(trial_data,3); trial_data = trim_data(trial_data,'feed');
+[~, ~] = unit_correlation(trial_data,struct('array',filenames{file,2},'signal','SUA','pca_dims',8,'doPlot',true));
+ylim([0,0.8]); set(gca,'TickDir','out'); box off; 
+% Figure 8b
+figure
+col = parula(9);
+for file = 1:36
+    trial_data = loadTDfiles(filenames{file,1},{@getTDidx,{'result','R'}}); 
+    trial_data = binTD(trial_data,3); 
+    if ismember(file,1:16)
+        trial_data = trim_data(trial_data,'exec');
+        [pears_coef, ~] = unit_correlation(trial_data,struct('array',filenames{file,2},'signal','SUA','pca_dims',10,'doPlot',false));
+        [cca_coef,~,~] = fCCA(trial_data,struct('array',filenames{file,2},'pca_dims',10,'surrogate_iter',0,'doPlot',false));
+        for band = 1:9
+            x = median(cca_coef(:,band)); y = median(pears_coef(:,band));
+            hold on; scatter(x,y,'MarkerEdgeColor',col(band,:),'MarkerFaceColor',col(band,:));
+        end
+    elseif ismember(file,17:28)
+        trial_data = trim_data(trial_data,'prep');
+        [pears_coef, ~] = unit_correlation(trial_data,struct('array',filenames{file,2},'signal','SUA','pca_dims',15,'doPlot',false));
+        [cca_coef,~,~] = fCCA(trial_data,struct('array',filenames{file,2},'pca_dims',15,'surrogate_iter',0,'doPlot',false));
+        for band = 1:9
+            x = median(cca_coef(:,band)); y = median(pears_coef(:,band));
+            hold on; scatter(x,y,'+','MarkerEdgeColor',col(band,:),'LineWidth',2);
+        end
+    else
+        trial_data = trim_data(trial_data,'feed');
+        [pears_coef, ~] = unit_correlation(trial_data,struct('array',filenames{file,2},'signal','SUA','pca_dims',8,'doPlot',false));
+        [cca_coef,~,~] = fCCA(trial_data,struct('array',filenames{file,2},'pca_dims',8,'surrogate_iter',0,'doPlot',false));
+        for band = 1:9
+            x = median(cca_coef(:,band)); y = median(pears_coef(:,band));
+            hold on; scatter(x,y,'^','MarkerEdgeColor',col(band,:),'MarkerFaceColor',col(band,:));
+        end
+    end
+end
+xlim([0,0.7]); ylim([0,0.7]); set(gca,'TickDir','out'); box off; 
+ylabel('SU correlation'); xlabel('Latent dynamics correlation')

@@ -122,11 +122,11 @@ if doPlot
 
     % Plot
     x = reshape([within_elect; across_elect],[],bands_number*2);
+    x(any(isnan(x), 2), :) = [];
     pos1 = 1:3:bands_number*3; pos2 = 2:3:bands_number*3+1;
     positions = repmat(sort([pos1 pos2]),size(x,1),1);
     label_positions = (pos1+pos2)./2; 
 
-    figure
     c = parula(bands_number*2); c(2:2:bands_number*2,:) = 0;
     for n = 1:bands_number*2
         hold on; scatter(positions(:,n),x(:,n),20,'MarkerEdgeColor',c(n,:),'MarkerFaceColor',c(n,:),'MarkerFaceAlpha',.3,'MarkerEdgeAlpha',.3);

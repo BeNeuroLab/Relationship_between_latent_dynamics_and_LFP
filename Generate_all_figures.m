@@ -234,7 +234,7 @@ total_r2 = {};
 for file = 1:16
     trial_data = loadTDfiles(filenames{file,1},{@getTDidx,{'result','R'}}); 
     trial_data = binTD(trial_data,3); trial_data = trim_data(trial_data,'exec');
-    [decoder_result] = vel_decoder(trial_data,struct('array',filenames{file,2},'folds',1,'bins_to_past',3,'pca_dims',10,'doPlot',false,'eval',{{'r2'}}));
+    [decoder_result] = vel_decoder(trial_data,struct('array',filenames{file,2},'folds',50,'bins_to_past',3,'pca_dims',10,'doPlot',false,'eval',{{'r2'}}));
     total_r2{file} = reshape([decoder_result.r2],[],10);
 end
 data = cell2mat(total_r2');
@@ -404,7 +404,7 @@ total_clasif = {};
 for file = 17:28
     trial_data = loadTDfiles(filenames{file,1},{@getTDidx,{'result','R'}}); 
     trial_data = binTD(trial_data,3); trial_data = trim_data(trial_data,'prep');
-    [total_clasif{file}] = target_classifier(trial_data,struct('array',filenames{file,2},'folds',5,'pca_dims',15,'doPlot',false));
+    [total_clasif{file}] = target_classifier(trial_data,struct('array',filenames{file,2},'folds',100,'pca_dims',15,'doPlot',false));
 end
 data = cell2mat(total_clasif');
 edge_label = 0:0.02:1; c = parula(9); c(10,:) = [0 0 0];
@@ -523,3 +523,5 @@ for file = 1:36
 end
 xlim([0,0.7]); ylim([0,0.7]); set(gca,'TickDir','out'); box off; 
 ylabel('SU correlation'); xlabel('Latent dynamics correlation')
+
+%% 

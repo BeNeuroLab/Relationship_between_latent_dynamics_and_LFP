@@ -1,6 +1,6 @@
 close all; clear; clc;
  
-root_path = 'C:\Users\Cecilia\Documents\BeNeuroLab\Project_LFPvsMLatents';
+root_path = '/home/cecilia/Documents/Projects/Project_LFPvsMLatents';
 data_path = fullfile(root_path,'Data');
 addpath(genpath(data_path));
 % Add trial_data repo to path
@@ -524,4 +524,64 @@ end
 xlim([0,0.7]); ylim([0,0.7]); set(gca,'TickDir','out'); box off; 
 ylabel('SU correlation'); xlabel('Latent dynamics correlation')
 
-%% 
+%% Supplementary figures
+% Figure 7 - suppl 2
+figure
+% subplot(1,3,2)
+total_cca_exec = {}; total_cca_prep = {}; total_cca_rest = {};
+for file = 1:16
+    load(filenames{file,1}); 
+    trial_data = binTD(trial_data,3); 
+    trial_data_temp = trim_data(trial_data,'exec');
+    [cca_coeff,~,~] = fCCA(trial_data_temp,struct('array',filenames{file,2},'pca_dims',10,'surrogate_iter',0,'doPlot',false));
+    total_cca_exec{file} = mean(cca_coeff);
+    trial_data_temp = trim_data(trial_data,'prep');
+    [cca_coeff,~,~] = fCCA(trial_data_temp,struct('array',filenames{file,2},'pca_dims',10,'surrogate_iter',0,'doPlot',false));
+    total_cca_prep{file} = mean(cca_coeff);
+    trial_data_temp = trim_data(trial_data,'rest');
+    [cca_coeff,~,~] = fCCA(trial_data_temp,struct('array',filenames{file,2},'pca_dims',10,'surrogate_iter',0,'doPlot',false));
+    total_cca_rest{file} = mean(cca_coeff);
+end
+data_exec = cell2mat(total_cca_exec'); hold on; stdshade(data_exec,0.5,[0.19,0.71,1])
+data_prep = cell2mat(total_cca_prep'); hold on; stdshade(data_prep,0.5,[0.12,0.74,0.45])
+data_rest = cell2mat(total_cca_rest'); hold on; stdshade(data_rest,0.5,[0.7,0.7,0.7])
+set(gca,'xticklabel',bands_name); xtickangle(45); ylabel('LFP-latent dynamics correlation'); ylim([0,0.7])
+set(gca,'TickDir','out'); box off; title('M1')
+
+subplot(1,3,1)
+total_cca_exec = {}; total_cca_prep = {}; total_cca_rest = {};
+for file = 17:28
+    load(filenames{file,1}); 
+    trial_data = binTD(trial_data,3); 
+    trial_data_temp = trim_data(trial_data,'exec');
+    [cca_coeff,~,~] = fCCA(trial_data_temp,struct('array',filenames{file,2},'pca_dims',10,'surrogate_iter',0,'doPlot',false));
+    total_cca_exec{file} = mean(cca_coeff);
+    trial_data_temp = trim_data(trial_data,'prep');
+    [cca_coeff,~,~] = fCCA(trial_data_temp,struct('array',filenames{file,2},'pca_dims',10,'surrogate_iter',0,'doPlot',false));
+    total_cca_prep{file} = mean(cca_coeff);
+    trial_data_temp = trim_data(trial_data,'rest');
+    [cca_coeff,~,~] = fCCA(trial_data_temp,struct('array',filenames{file,2},'pca_dims',10,'surrogate_iter',0,'doPlot',false));
+    total_cca_rest{file} = mean(cca_coeff);
+end
+data_exec = cell2mat(total_cca_exec'); hold on; stdshade(data_exec,0.5,[0.19,0.71,1])
+data_prep = cell2mat(total_cca_prep'); hold on; stdshade(data_prep,0.5,[0.12,0.74,0.45])
+data_rest = cell2mat(total_cca_rest'); hold on; stdshade(data_rest,0.5,[0.7,0.7,0.7])
+set(gca,'xticklabel',bands_name); xtickangle(45); ylabel('LFP-latent dynamics correlation'); ylim([0,0.7])
+set(gca,'TickDir','out'); box off; title('PMd')
+
+subplot(1,3,3)
+total_cca_exec = {}; total_cca_prep = {}; total_cca_rest = {};
+for file = 29:36
+    load(filenames{file,1}); 
+    trial_data = binTD(trial_data,3); 
+    trial_data_temp = trim_data(trial_data,'feed');
+    [cca_coeff,~,~] = fCCA(trial_data_temp,struct('array',filenames{file,2},'pca_dims',10,'surrogate_iter',0,'doPlot',false));
+    total_cca_exec{file} = mean(cca_coeff);
+    trial_data_temp = trim_data(trial_data,'rest');
+    [cca_coeff,~,~] = fCCA(trial_data_temp,struct('array',filenames{file,2},'pca_dims',10,'surrogate_iter',0,'doPlot',false));
+    total_cca_rest{file} = mean(cca_coeff);
+end
+data_exec = cell2mat(total_cca_exec'); hold on; stdshade(data_exec,0.5,[0.19,0.71,1])
+data_rest = cell2mat(total_cca_rest'); hold on; stdshade(data_rest,0.5,[0.7,0.7,0.7])
+set(gca,'xticklabel',bands_name); xtickangle(45); ylabel('LFP-latent dynamics correlation'); ylim([0,0.7])
+set(gca,'TickDir','out'); box off; title('Area 2')

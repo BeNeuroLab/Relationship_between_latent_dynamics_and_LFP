@@ -1,13 +1,13 @@
 close all; clear; clc;
  
-root_path = 'C:\Users\Cecilia\Documents\BeNeuroLab\Project_LFPvsMLatents';
+root_path = '/home/cecilia/Documents/Projects/Project_LFPvsMLatents';
 data_path = fullfile(root_path,'Data');
 addpath(genpath(data_path));
 % Add trial_data repo to path
 addpath(genpath(fullfile(root_path,"TrialData")));
 
 % Import trial_data structure
-load(fullfile(data_path,'\filenames.mat'));
+load(fullfile(data_path,'filenames.mat'));
 file = 10; % Example file
 trial_data = loadTDfiles(filenames{file,1},{@getTDidx,{'result','R'}}); 
 
@@ -16,7 +16,7 @@ trial_data = binTD(trial_data,3);
 
 % Trim data to window of interest
 epoch = 'exec'; % exec(execution), feed(feedback processing), prep(preparation), rest
-trial_data = trim_data(trial_data,epoch);
+trial_data = trim_data_2(trial_data,epoch);
 
 
 %%%%%%%%%%%%%%%

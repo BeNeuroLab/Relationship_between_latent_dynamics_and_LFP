@@ -1,6 +1,6 @@
 close all; clear; clc;
  
-root_path = '/home/cecilia/Documents/Projects/Project_LFPvsMLatents';
+root_path = 'C:\Users\Cecilia\Documents\Projects\Project_LFPvsMLatents';
 data_path = fullfile(root_path,'Data');
 addpath(genpath(data_path));
 % Add trial_data repo to path
@@ -11,12 +11,9 @@ load(fullfile(data_path,'filenames.mat'));
 file = 10; % Example file
 trial_data = loadTDfiles(filenames{file,1},{@getTDidx,{'result','R'}}); 
 
-% Change original bin size (10 ms) to 30 ms
-trial_data = binTD(trial_data,3);
-
 % Trim data to window of interest
 epoch = 'exec'; % exec(execution), feed(feedback processing), prep(preparation), rest
-trial_data = trim_data_2(trial_data,epoch);
+trial_data = trim_data_v2(trial_data,epoch);
 
 
 %%%%%%%%%%%%%%%
@@ -51,9 +48,7 @@ lfp_dims = 10;
 [cca_coef_supl,cca_coef_surr_supl,p_supl] = fCCA_LFPmanifold(trial_data,struct('array',filenames{file,2},'pca_dims',pca_dims,'lfp_dims',lfp_dims,'surrogate_iter',0,'doPlot',true));
 
 % LFP power spectrum
-% WARNING: This function works with the original dataset, not the trial_data structure
-% Add ClassyDataAnalysis to working path
-addpath(genpath(fullfile(root_path,"ClassyDataAnalysis")));
-cds_path = fullfile(data_path,'Preprocessed_DataSets','Chewie_CO_CS_BL_10212016_001.mat');
-[lfp_ps,ps_freqs] = lfp_power_spectrum(cds_path,struct('array',filenames{file,2},'epoch','exec','max_freq',400,'doPlot',true));
+% WARNING: This function works with the LFP signal, not the trial_data structure
+LFP = load([filenames{file,1}(1:end-4) '_LFP']);
+[lfp_ps,ps_freqs] = lfp_power_spectrum(LFP,struct('array',filenames{file,2},'epoch','exec','max_freq',400,'doPlot',true));
 

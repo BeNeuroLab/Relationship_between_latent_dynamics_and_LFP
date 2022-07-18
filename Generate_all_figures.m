@@ -1,6 +1,6 @@
 close all; clear; clc;
  
-root_path = '/home/cecilia/Documents/Projects/Project_LFPvsMLatents';
+root_path = 'C:\Users\Cecilia\Documents\Projects\Project_LFPvsMLatents';
 data_path = fullfile(root_path,'Data');
 addpath(genpath(data_path));
 % Add trial_data repo to path
@@ -93,7 +93,6 @@ xlabel('seconds')
 % Figure 3a
 file = 12;
 trial_data = loadTDfiles(filenames{file,1},{@getTDidx,{'result','R'}}); 
-trial_data = binTD(trial_data,3);
 trial_data = trim_data(trial_data,'exec');
 [cca_coef,cca_coef_surr,p,A,B,U,V] = fCCA(trial_data,struct('array',filenames{file,2},'pca_dims',10,'surrogate_iter',0,'doPlot',false));
 trials = [2,5,7,18];
@@ -173,24 +172,24 @@ figure
 subplot(1,3,1)
 file = 3;
 trial_data = loadTDfiles(filenames{file,1},{@getTDidx,{'result','R'}}); 
-trial_data = binTD(trial_data,3); trial_data = trim_data(trial_data,'exec');
+trial_data = trim_data(trial_data,'exec');
 [~,~,~] = fCCA(trial_data,struct('array',filenames{file,2},'pca_dims',10,'surrogate_iter',1,'doPlot',true));
 subplot(1,3,2)
 file = 12;
 trial_data = loadTDfiles(filenames{file,1},{@getTDidx,{'result','R'}}); 
-trial_data = binTD(trial_data,3); trial_data = trim_data(trial_data,'exec');
+trial_data = trim_data(trial_data,'exec');
 [~,~,~] = fCCA(trial_data,struct('array',filenames{file,2},'pca_dims',10,'surrogate_iter',1,'doPlot',true));
 subplot(1,3,3)
 file = 15;
 trial_data = loadTDfiles(filenames{file,1},{@getTDidx,{'result','R'}}); 
-trial_data = binTD(trial_data,3); trial_data = trim_data(trial_data,'exec');
+trial_data = trim_data(trial_data,'exec');
 [~,~,~] = fCCA(trial_data,struct('array',filenames{file,2},'pca_dims',10,'surrogate_iter',1,'doPlot',true));
 % Figure 3c
 figure
 total_cca = {};
 for file = 1:16
     trial_data = loadTDfiles(filenames{file,1},{@getTDidx,{'result','R'}}); 
-    trial_data = binTD(trial_data,3); trial_data = trim_data(trial_data,'exec');
+    trial_data = trim_data(trial_data,'exec');
     [cca_coeff,~,~] = fCCA(trial_data,struct('array',filenames{file,2},'pca_dims',10,'surrogate_iter',0,'doPlot',false));
     total_cca{file} = cca_coeff;
 end
@@ -215,7 +214,7 @@ title('All CCA M1')
 % Figure 4a
 file = 12;
 trial_data = loadTDfiles(filenames{file,1},{@getTDidx,{'result','R'}}); 
-trial_data = binTD(trial_data,3); trial_data = trim_data(trial_data,'exec');
+trial_data = trim_data(trial_data,'exec');
 [decoder_result] = vel_decoder(trial_data,struct('array',filenames{file,2},'folds',1,'bins_to_past',3,'pca_dims',10,'doPlot',false,'fix_traintest',true));
 figure
 c = parula(9); c(10,:) = [0.5 0.5 0.5];
@@ -233,7 +232,7 @@ figure
 total_r2 = {};
 for file = 1:16
     trial_data = loadTDfiles(filenames{file,1},{@getTDidx,{'result','R'}}); 
-    trial_data = binTD(trial_data,3); trial_data = trim_data(trial_data,'exec');
+    trial_data = trim_data(trial_data,'exec');
     [decoder_result] = vel_decoder(trial_data,struct('array',filenames{file,2},'folds',50,'bins_to_past',3,'pca_dims',10,'doPlot',false,'eval',{{'r2'}}));
     total_r2{file} = reshape([decoder_result.r2],[],10);
 end
@@ -290,7 +289,6 @@ subplot(1,3,1)
 total_cca_exec = {}; total_cca_prep = {}; total_cca_rest = {};
 for file = 1:16
     trial_data = loadTDfiles(filenames{file,1},{@getTDidx,{'result','R'}}); 
-    trial_data = binTD(trial_data,3); 
     trial_data_temp = trim_data(trial_data,'exec');
     [cca_coeff,~,~] = fCCA(trial_data_temp,struct('array',filenames{file,2},'pca_dims',10,'surrogate_iter',0,'doPlot',false));
     total_cca_exec{file} = mean(cca_coeff);
@@ -345,19 +343,18 @@ figure
 subplot(1,2,1)
 file = 17;
 trial_data = loadTDfiles(filenames{file,1},{@getTDidx,{'result','R'}}); 
-trial_data = binTD(trial_data,3); trial_data = trim_data(trial_data,'prep');
+trial_data = trim_data(trial_data,'prep');
 [~,~,~] = fCCA(trial_data,struct('array',filenames{file,2},'pca_dims',15,'surrogate_iter',1,'doPlot',true));
 subplot(1,2,2)
 file = 26;
 trial_data = loadTDfiles(filenames{file,1},{@getTDidx,{'result','R'}}); 
-trial_data = binTD(trial_data,3); trial_data = trim_data(trial_data,'prep');
+trial_data = trim_data(trial_data,'prep');
 [~,~,~] = fCCA(trial_data,struct('array',filenames{file,2},'pca_dims',15,'surrogate_iter',1,'doPlot',true));
 % Figure 6c&d
 figure
 total_cca_exec = {}; total_cca_prep = {}; total_cca_rest = {};
 for file = 17:28
     trial_data = loadTDfiles(filenames{file,1},{@getTDidx,{'result','R'}}); 
-    trial_data = binTD(trial_data,3); 
     trial_data_temp = trim_data(trial_data,'exec');
     [cca_coeff,~,~] = fCCA(trial_data_temp,struct('array',filenames{file,2},'pca_dims',15,'surrogate_iter',0,'doPlot',false));
     total_cca_exec{file} = mean(cca_coeff);
@@ -403,7 +400,7 @@ figure
 total_clasif = {};
 for file = 17:28
     trial_data = loadTDfiles(filenames{file,1},{@getTDidx,{'result','R'}}); 
-    trial_data = binTD(trial_data,3); trial_data = trim_data(trial_data,'prep');
+    trial_data = trim_data(trial_data,'prep');
     [total_clasif{file}] = target_classifier(trial_data,struct('array',filenames{file,2},'folds',100,'pca_dims',15,'doPlot',false));
 end
 data = cell2mat(total_clasif');
@@ -434,19 +431,18 @@ figure
 subplot(1,3,1)
 file = 32;
 trial_data = loadTDfiles(filenames{file,1},{@getTDidx,{'result','R'}}); 
-trial_data = binTD(trial_data,3); trial_data = trim_data(trial_data,'feed');
+trial_data = trim_data(trial_data,'feed');
 [~,~,~] = fCCA(trial_data,struct('array',filenames{file,2},'pca_dims',8,'surrogate_iter',1,'doPlot',true));
 subplot(1,3,2)
 file = 35;
 trial_data = loadTDfiles(filenames{file,1},{@getTDidx,{'result','R'}}); 
-trial_data = binTD(trial_data,3); trial_data = trim_data(trial_data,'feed');
+trial_data = trim_data(trial_data,'feed');
 [~,~,~] = fCCA(trial_data,struct('array',filenames{file,2},'pca_dims',8,'surrogate_iter',1,'doPlot',true));
 % Figure 7c
 subplot(1,3,3)
 total_cca_exec = {}; total_cca_rest = {};
 for file = 29:36
     trial_data = loadTDfiles(filenames{file,1},{@getTDidx,{'result','R'}}); 
-    trial_data = binTD(trial_data,3); 
     trial_data_temp = trim_data(trial_data,'feed');
     [cca_coeff,~,~] = fCCA(trial_data_temp,struct('array',filenames{file,2},'pca_dims',15,'surrogate_iter',0,'doPlot',false));
     total_cca_exec{file} = mean(cca_coeff);
@@ -474,19 +470,19 @@ figure
 subplot(1,3,1)
 file = 12;
 trial_data = loadTDfiles(filenames{file,1},{@getTDidx,{'result','R'}}); 
-trial_data = binTD(trial_data,3); trial_data = trim_data(trial_data,'exec');
+trial_data = trim_data(trial_data,'exec');
 [~, ~] = unit_correlation(trial_data,struct('array',filenames{file,2},'signal','SUA','pca_dims',10,'doPlot',true));
 ylim([0,0.8]); set(gca,'TickDir','out'); box off; 
 subplot(1,3,2)
 file = 26;
 trial_data = loadTDfiles(filenames{file,1},{@getTDidx,{'result','R'}}); 
-trial_data = binTD(trial_data,3); trial_data = trim_data(trial_data,'prep');
+trial_data = trim_data(trial_data,'prep');
 [~, ~] = unit_correlation(trial_data,struct('array',filenames{file,2},'signal','SUA','pca_dims',15,'doPlot',true));
 ylim([0,0.8]); set(gca,'TickDir','out'); box off; 
 subplot(1,3,3)
 file = 32;
 trial_data = loadTDfiles(filenames{file,1},{@getTDidx,{'result','R'}}); 
-trial_data = binTD(trial_data,3); trial_data = trim_data(trial_data,'feed');
+trial_data = trim_data(trial_data,'feed');
 [~, ~] = unit_correlation(trial_data,struct('array',filenames{file,2},'signal','SUA','pca_dims',8,'doPlot',true));
 ylim([0,0.8]); set(gca,'TickDir','out'); box off; 
 % Figure 8b
@@ -494,7 +490,6 @@ figure
 col = parula(9);
 for file = 1:36
     trial_data = loadTDfiles(filenames{file,1},{@getTDidx,{'result','R'}}); 
-    trial_data = binTD(trial_data,3); 
     if ismember(file,1:16)
         trial_data = trim_data(trial_data,'exec');
         [pears_coef, ~] = unit_correlation(trial_data,struct('array',filenames{file,2},'signal','SUA','pca_dims',10,'doPlot',false));
@@ -531,7 +526,6 @@ figure
 total_cca_exec = {}; total_cca_prep = {}; total_cca_rest = {};
 for file = 1:16
     load(filenames{file,1}); 
-    trial_data = binTD(trial_data,3); 
     trial_data_temp = trim_data(trial_data,'exec');
     [cca_coeff,~,~] = fCCA(trial_data_temp,struct('array',filenames{file,2},'pca_dims',10,'surrogate_iter',0,'doPlot',false));
     total_cca_exec{file} = mean(cca_coeff);
@@ -552,7 +546,6 @@ subplot(1,3,1)
 total_cca_exec = {}; total_cca_prep = {}; total_cca_rest = {};
 for file = 17:28
     load(filenames{file,1}); 
-    trial_data = binTD(trial_data,3); 
     trial_data_temp = trim_data(trial_data,'exec');
     [cca_coeff,~,~] = fCCA(trial_data_temp,struct('array',filenames{file,2},'pca_dims',10,'surrogate_iter',0,'doPlot',false));
     total_cca_exec{file} = mean(cca_coeff);
@@ -573,7 +566,6 @@ subplot(1,3,3)
 total_cca_exec = {}; total_cca_prep = {}; total_cca_rest = {};
 for file = 29:36
     load(filenames{file,1}); 
-    trial_data = binTD(trial_data,3); 
     trial_data_temp = trim_data(trial_data,'feed');
     [cca_coeff,~,~] = fCCA(trial_data_temp,struct('array',filenames{file,2},'pca_dims',10,'surrogate_iter',0,'doPlot',false));
     total_cca_exec{file} = mean(cca_coeff);

@@ -21,7 +21,7 @@
 % Written by Cecilia Gallego-Carracedo. Updated April 2022.
 %
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-function [freq_cont,freq] = lfp_power_spectrum(cds_path,params)
+function [freq_cont,freq] = lfp_power_spectrum(LFP,params)
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Default parameters
 array = {};
@@ -34,21 +34,18 @@ if isempty(array), error('Need to provide a working array location'); end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 
-% Open origial dataset
-load(cds_path)
-
-fs = 1/(cds.lfp.t(2)-cds.lfp.t(1));
-lfp_time = cds.lfp.t;
-lfp = cds.lfp;
+fs = 1/(LFP.lfp.t(2)-LFP.lfp.t(1));
+lfp_time = LFP.lfp.t;
+lfp = LFP.lfp;
 
 % Find LFP channels of the array of interest
-names = cds.lfp.Properties.VariableNames;
+names = LFP.lfp.Properties.VariableNames;
 lfp_idx = startsWith(names,array);    
 if sum(lfp_idx) == 0 
     error('No lfp data for given array')
 end
    
-timing = cds.trials;
+timing = LFP.trials;
 timing = timing(~isnan(timing.goCueTime),:);
 
 epoch_idx = [];
@@ -65,8 +62,8 @@ switch epoch
         error('Not valid behavioural epoch for this analysis')
 end
 
-% Clear cds to save memory
-clear 'cds'
+% Clear LFP variable to save memory
+clear 'LFP'
 
 
 lfp_single_aray = table2array(lfp(:,lfp_idx==1));

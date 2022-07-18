@@ -112,6 +112,8 @@ across_elect = abs(across_elect);
 
 
 if doPlot
+    figure
+    
     % If there are names for the frequency bands
     if exist('bands_name.mat','file') == 2
         load('bands_name.mat');
